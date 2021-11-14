@@ -17,24 +17,21 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.swing.JOptionPane;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * NHT
  */
 public class App {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
         Document doc = Jsoup.connect("https://kissmanga.org/chapter/manga-ee981361/chapter-1").timeout(20000).get();
         List<String> img = new ArrayList<>();
@@ -52,31 +49,19 @@ public class App {
         PrintWriter pw = new PrintWriter(new File("link.txt"));
         pw.print(img);
         pw.close();
-        layLink(img);
+        taiAnh(img);
     }
 
-    public static void layLink(List<String> img) {
+    public static void taiAnh(List<String> img) throws IOException, InterruptedException {
+        ThreadPoolExecutor e = (ThreadPoolExecutor) (Executors.newFixedThreadPool(10));
+
         for (int a = 0; a < img.size(); a++) {
-            String name = "" + (a + 1) + ".jpg";
+            String name = (a + 1) + ".jpg";
             String link = img.get(a);
-            taiAnh(link, name);
+            Thread01 t1 = new Thread01(name, link);
+            e.submit(t1);
         }
-    }
-
-    public static void taiAnh(String link, String name) {
-        try {
-            URL url = new URL(link);
-
-            InputStream in = url.openStream();
-            OutputStream out = new BufferedOutputStream(
-                    new FileOutputStream("C:\\Users\\khiem\\Desktop\\Img" + "\\" + name));
-            for (int b; (b = in.read()) != -1;) {
-                out.write(b);
-            }
-            out.close();
-            in.close();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Can not Dowload File !");
-        }
+        e.shutdown();
+        e.awaitTermination(1, TimeUnit.MINUTES);
     }
 }
