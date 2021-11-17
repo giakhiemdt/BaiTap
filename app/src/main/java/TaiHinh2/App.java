@@ -33,35 +33,40 @@ import java.util.concurrent.TimeUnit;
 public class App {
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        Document doc = Jsoup.connect("https://kissmanga.org/chapter/manga-ee981361/chapter-1").timeout(20000).get();
-        List<String> img = new ArrayList<>();
-        Elements im = doc.getElementsByTag("img");
-        for (int i = 0; i < im.size(); i++) {
-            String url = im.get(i).absUrl("src");
-            if (url.equals("")) {
-                continue;
-            }
-            if (url.contains("blazefast")) {
-                img.add(url);
+        List<String> chap = new ArrayList<>();
+
+        Document doc = Jsoup.connect("https://kissmanga.org/manga/manga-ee981361").timeout(20000).get();
+
+        Elements chaps = doc.getElementsByTag("h3");
+
+        for (int a = 0; a < chaps.size(); a++) {
+            Elements lc = chaps.get(a).getElementsByTag("a");
+            for (int b = 0; b < lc.size(); b++) {
+                String linkChap = lc.first().absUrl("href");
+                if (linkChap.contains("chapter")) {
+                    chap.add(linkChap);
+                }
             }
         }
+        linkAnh(chap);
+        // PrintWriter pw = new PrintWriter(new File("output.txt"));
+        // pw.println(chap);
+        // pw.println(chaps.size());
+        // pw.close();
 
-        PrintWriter pw = new PrintWriter(new File("link.txt"));
-        pw.print(img);
-        pw.close();
-        taiAnh(img);
     }
 
-    public static void taiAnh(List<String> img) throws IOException, InterruptedException {
-        ThreadPoolExecutor e = (ThreadPoolExecutor) (Executors.newFixedThreadPool(10));
+    public static void linkAnh(List<String> chap) throws IOException, InterruptedException {
+        ThreadPoolExecutor e1 = (ThreadPoolExecutor) (Executors.newFixedThreadPool(5));
 
-        for (int a = 0; a < img.size(); a++) {
-            String name = (a + 1) + ".jpg";
-            String link = img.get(a);
-            Thread01 t1 = new Thread01(name, link);
-            e.submit(t1);
+        for (int a = 0; a < chap.size(); a++) {
+            String chapName = "Chap_" + (a + 1);
+            String chapLink = chap.get(chap.size() - a - 1);
+            ThreadChap thrchap = new ThreadChap(chapName, chapLink);
+            e1.submit(thrchap);
         }
-        e.shutdown();
-        e.awaitTermination(1, TimeUnit.MINUTES);
+
+        e1.shutdown();
+        e1.awaitTermination(1, TimeUnit.MINUTES);
     }
 }
