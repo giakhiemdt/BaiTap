@@ -1,8 +1,6 @@
 package TaiHinh2;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -10,16 +8,17 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.*;
 
 public class ThreadChap extends Thread {
 
     String nameChap = "";
     String linkChap = "";
+    String mangaName = "";
 
-    public ThreadChap(String name, String link) {
+    public ThreadChap(String name, String link, String manga) {
         nameChap = name;
         linkChap = link;
+        mangaName = manga;
     }
 
     @Override
@@ -39,10 +38,6 @@ public class ThreadChap extends Thread {
                 }
             }
 
-            // PrintWriter pw;
-            // pw = new PrintWriter(new File("link.txt"));
-            // pw.print(img);
-            // pw.close();
             taiAnh(img);
         } catch (IOException | InterruptedException e) {
 
@@ -56,7 +51,7 @@ public class ThreadChap extends Thread {
         for (int a = 0; a < img.size(); a++) {
             String name = nameChap + "_" + (a + 1) + ".jpg";
             String link = img.get(a);
-            Thread01 t1 = new Thread01(name, link);
+            Thread01 t1 = new Thread01(name, link, mangaName);
             e.submit(t1);
         }
 
